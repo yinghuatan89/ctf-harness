@@ -1,0 +1,85 @@
+{
+  "providers": {
+    "deepseek": {
+      "type": "openai_compatible",
+      "base_url": "https://api.deepseek.com/v1",
+      "api_key": "env:DEEPSEEK_API_KEY",
+      "model": "deepseek-chat",
+      "timeout": 120
+    },
+    "kimi": {
+      "type": "openai_compatible",
+      "base_url": "https://api.moonshot.cn/v1",
+      "api_key": "env:MOONSHOT_API_KEY",
+      "model": "moonshot-v1-32k"
+    },
+    "qwen": {
+      "type": "openai_compatible",
+      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "api_key": "env:DASHSCOPE_API_KEY",
+      "model": "qwen-max"
+    },
+    "zhipu": {
+      "type": "openai_compatible",
+      "base_url": "https://open.bigmodel.cn/api/paas/v4",
+      "api_key": "env:ZHIPU_API_KEY",
+      "model": "glm-4-plus"
+    },
+    "openai": {
+      "type": "openai_compatible",
+      "base_url": "https://api.openai.com/v1",
+      "api_key": "env:OPENAI_API_KEY",
+      "model": "gpt-4o-mini"
+    },
+    "claude": {
+      "type": "anthropic",
+      "api_key": "env:ANTHROPIC_API_KEY",
+      "model": "claude-sonnet-4-20250514"
+    },
+    "ollama-local": {
+      "type": "openai_compatible",
+      "base_url": "http://localhost:11434/v1",
+      "api_key": "ollama",
+      "model": "qwen2.5:14b",
+      "timeout": 180
+    },
+    "vllm-local": {
+      "type": "openai_compatible",
+      "base_url": "http://localhost:8000/v1",
+      "model": "Qwen/Qwen2.5-Coder-32B-Instruct"
+    }
+  },
+
+  "roles": {
+    "supervisor": {"provider": "deepseek", "fallback": [{"provider": "kimi"}, {"provider": "ollama-local"}]},
+    "strategist": {"provider": "deepseek"},
+    "executor":   {"provider": "deepseek", "fallback": [{"provider": "ollama-local"}]},
+    "reflector":  {"provider": "claude", "fallback": [{"provider": "deepseek"}]}
+  },
+
+  "solve": {
+    "mode": "supervisor",
+    "time_budget_s": 600,
+    "supervisor_rounds": 3,
+    "subagent_steps": 10,
+    "subagents_parallel": 3,
+    "fast": true,
+    "recipe_budget_s": 90,
+    "retry_reflect": true
+  },
+
+  "ctfd": {
+    "base_url": null,
+    "token": "env:CTFD_TOKEN",
+    "submit": false
+  },
+
+  "notify": {
+    "flag_found": [
+      {"type": "feishu", "url": "https://open.feishu.cn/open-apis/bot/v2/hook/xxxx"},
+      {"type": "wecom", "url": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxxx"},
+      {"type": "generic", "url": "https://your.server/ctfhook",
+       "template": {"event": "flag", "name": "{name}", "flag": "{flag}", "via": "{via}"}}
+    ]
+  }
+}
