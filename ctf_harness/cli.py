@@ -376,10 +376,19 @@ def main(argv=None) -> int:
     p_kb = sub.add_parser("kb", help="knowledge base info / search")
     p_kb.add_argument("query", nargs="?", help="search query")
 
+    p_web = sub.add_parser("web", help="start the local web dashboard (GUI)")
+    p_web.add_argument("--host", default="127.0.0.1", help="bind host (default 127.0.0.1)")
+    p_web.add_argument("--port", type=int, default=8787, help="bind port (default 8787)")
+    p_web.add_argument("--open", action="store_true", help="open the browser automatically")
+
     args = parser.parse_args(argv)
     if not args.cmd:
         parser.print_help()
         return 0
+
+    if args.cmd == "web":
+        from .webui import run as run_web
+        return run_web(host=args.host, port=args.port, open_browser=args.open)
 
     cfg = load_config(getattr(args, "config", None))
     plugins = load_plugins(cfg)
