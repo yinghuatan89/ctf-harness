@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ctf-harness"
+version = "0.1.0"
+description = "Speed-first, category-aware, multi-model AI harness for CTF competitions: L0 heuristics -> L1 recipes -> L2 parallel race lanes -> L3 reflection"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "ctf-harness contributors" }]
+keywords = ["ctf", "harness", "llm", "agent", "ai", "security", "flag", "competition", "ai-ctf"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+]
+
+[project.scripts]
+ctfh = "ctf_harness.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["ctf_harness*"]
