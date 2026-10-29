@@ -1,0 +1,14 @@
+{
+  "id": "user.hidden_route_probe",
+  "title": "Probe a custom hidden route (declarative recipe demo)",
+  "category": "web",
+  "requires": {"url": true},
+  "steps": [
+    {"tool": "http",
+     "args": {"method": "GET", "url": "{{url}}/hidden_flag"},
+     "capture": {"body": "flag\\{[^}]+\\}"}},
+    {"tool": "http",
+     "args": {"method": "GET", "url": "{{url}}/admin/backup.zip"},
+     "set": {"tried_admin": "yes"}}
+  ]
+}
