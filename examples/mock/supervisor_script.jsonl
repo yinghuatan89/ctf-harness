@@ -1,0 +1,1 @@
+{"content": "Round 1 dispatch: split recon and route discovery.\n```json\n{\"analysis\": \"fresh web challenge, no form on index\", \"verdict\": \"continue\", \"subtasks\": [{\"id\": \"t1\", \"role\": \"web_fuzzer\", \"brief\": \"Enumerate non-standard hidden routes on the target; start with /hidden_flag, then /flag.txt and /admin.\", \"steps\": 4}]}\n```"}
