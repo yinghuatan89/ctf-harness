@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ctf-harness · 作战台</title>
+<style>
+:root {
+  --bg: #0b0e14;
+  --bg2: #11161f;
+  --panel: #151b26;
+  --panel2: #1a2230;
+  --border: #232d3d;
+  --text: #d7e0ec;
+  --muted: #8a97a8;
+  --accent: #4fd1c5;
+  --accent2: #7aa2f7;
+  --green: #3ddc84;
+  --yellow: #e6c07b;
+  --red: #f26d6d;
+  --purple: #b78bf7;
+  --mono: "Cascadia Code", "JetBrains Mono", Consolas, "Courier New", monospace;
+  --sans: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  display: flex;
+  overflow: hidden;
+}
+/* ---------- sidebar ---------- */
+.sidebar {
+  width: 210px;
+  min-width: 210px;
+  background: var(--bg2);
+  border-right: 1px solid var(--panel);
+  display: flex;
+  flex-direction: column;
+  padding: 14px 10px;
+  gap: 4px;
+}
+.brand {
+  display: flex; align-items: center; gap: 9px;
+  padding: 6px 10px 16px;
+  border-bottom: 1px solid var(--panel);
+  margin-bottom: 10px;
+}
+.brand .logo {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; color: #06121a; font-size: 15px;
+}
+.brand .name { font-weight: 700; font-size: 15px; letter-spacing: .5px; }
+.brand .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 8px;
+  cursor: pointer; color: var(--muted);
+  font-weight: 500; user-select: none;
+  transition: background .15s, color .15s;
+}
+.nav-item:hover { background: var(--panel); color: var(--text); }
+.nav-item.active { background: var(--panel2); color: var(--accent); }
+.nav-item .ic { width: 18px; text-align: center; font-size: 15px; }
+.sidebar .foot {
+  margin-top: auto; padding: 10px 12px; font-size: 11px;
+  color: var(--muted); border-top: 1px solid var(--panel);
+  line-height: 1.7;
+}
+/* ---------- main ---------- */
+.main { flex: 1; overflow-y: auto; padding: 22px 26px 60px; }
+.page { display: none; }
+.page.active { display: block; }
+h1.title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+p.subtitle { color: var(--muted); margin-bottom: 18px; font-size: 13px; }
+.card {
+  background: var(--panel); border: 1px solid var(--panel2);
+  border-radius: 12px; padding: 16px 18px; margin-bottom: 16px;
+}
+.card h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 1080px) { .grid2, .row3 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 720px) { .grid2, .row2, .row3 { grid-template-columns: 1fr; } .sidebar { width: 62px; min-width: 62px; } .sidebar .nav-item span:not(.ic), .sidebar .brand .sub, .sidebar .foot { display: none; } .sidebar .brand { justify-content: center; padding: 6px 0 14px; } .main { padding: 16px 14px 50px; } }
+/* ---------- forms ---------- */
+label { display: block; font-size: 12px; color: var(--muted); margin: 10px 0 5px; }
+input[type=text], input[type=number], select, textarea {
+  width: 100%; background: var(--bg2); color: var(--text);
+  border: 1px solid var(--panel2); border-radius: 8px;
+  padding: 9px 11px; font-family: var(--mono); font-size: 13px;
+  outline: none;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent2); }
+textarea { resize: vertical; min-height: 64px; line-height: 1.5; }
+select { font-family: var(--sans); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+/* ---------- buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--panel2); color: var(--text);
+  border: 1px solid var(--panel2); border-radius: 8px;
+  padding: 9px 16px; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all .15s; font-family: var(--sans);
+}
+.btn:hover { border-color: var(--accent2); }
+.btn.primary { background: var(--accent); color: #06121a; border-color: var(--accent); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.danger { background: transparent; color: var(--red); border-color: var(--red); }
+.btn.danger:hover { background: rgba(242,109,109,.12); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.sm { padding: 5px 10px; font-size: 12px; }
+/* ---------- badges ---------- */
+.badge {
+  display: inline-block; padding: 2px 9px; border-radius: 20px;
+  font-size: 11px; font-weight: 700; letter-spacing: .4px;
+  background: var(--panel2); color: var(--muted);
+}
+.badge.running { background: rgba(122,163,247,.15); color: var(--accent2); }
+.badge.solved { background: rgba(61,220,132,.15); color: var(--green); }
+.badge.unsolved, .badge.timeout { background: rgba(224,192,123,.15); color: var(--yellow); }
+.badge.error, .badge.stopped { background: rgba(242,109,109,.15); color: var(--red); }
+.badge.queued { background: rgba(138,151,168,.15); color: var(--muted); }
+/* ---------- log ---------- */
+.logbox {
+  background: #0a0d13; border: 1px solid var(--panel2); border-radius: 10px;
+  padding: 12px 14px; font-family: var(--mono); font-size: 12.5px;
+  line-height: 1.65; height: 380px; overflow-y: auto; white-space: pre-wrap;
+  word-break: break-all;
+}
+.logbox .t { color: var(--muted); }
+.logbox .ok { color: var(--green); }
+.logbox .err { color: var(--red); }
+.logbox .warn { color: var(--yellow); }
+.logbox .flagline { color: var(--accent); font-weight: 700; }
+/* ---------- result banner ---------- */
+.result-banner {
+  display: none; align-items: center; gap: 14px;
+  background: var(--panel2); border: 1px solid var(--panel2);
+  border-radius: 10px; padding: 12px 16px; margin-bottom: 12px;
+}
+.result-banner.show { display: flex; }
+.result-banner .flag { font-family: var(--mono); font-size: 15px; color: var(--green); font-weight: 700; word-break: break-all; }
+.result-banner .meta { color: var(--muted); font-size: 12px; }
+/* ---------- tables ---------- */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; color: var(--muted); font-weight: 600; font-size: 12px;
+     padding: 8px 10px; border-bottom: 1px solid var(--panel2); }
+td { padding: 9px 10px; border-bottom: 1px solid var(--panel); vertical-align: top; }
+tr:hover td { background: rgba(255,255,255,.02); }
+/* ---------- chips ---------- */
+.chip { display: inline-block; padding: 2px 8px; margin: 2px 4px 2px 0;
+        border-radius: 6px; background: var(--panel2); color: var(--muted);
+        font-size: 11px; font-family: var(--mono); }
+.chip.good { color: var(--green); }
+.chip.miss { color: var(--red); }
+/* ---------- kb ---------- */
+.kb-hit { border-left: 3px solid var(--accent2); padding: 6px 12px; margin: 8px 0;
+          background: var(--bg2); border-radius: 0 8px 8px 0; font-size: 12.5px; }
+.kb-hit .src { color: var(--accent2); font-family: var(--mono); font-size: 11.5px; }
+/* ---------- misc ---------- */
+.spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--panel2);
+        border-top-color: var(--accent); border-radius: 50%; animation: rot .7s linear infinite; }
+@keyframes rot { to { transform: rotate(360deg); } }
+.empty { color: var(--muted); text-align: center; padding: 26px 0; font-size: 13px; }
+.mono { font-family: var(--mono); }
+.tag { color: var(--muted); font-size: 12px; }
+a { color: var(--accent2); }
+</style>
+</head>
+<body>
+
+<!-- ==================== SIDEBAR ==================== -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="logo">CTF</div>
+    <div>
+      <div class="sub">ctf-harness</div>
+      <div class="sub" id="verTag">--</div>
+    </div>
+  </div>
+  <div class="nav-item active" data-page="solve"><span class="ic">⚔️</span>工作台</div>
+  <div class="nav-item" data-page="tasks"><span class="ic">📜</span>任务历史</div>
+  <div class="nav-item" data-page="models"><span class="ic">🧠</span>模型配置</div>
+  <div class="nav-item" data-page="recipes"><span class="ic">📚</span>预案库</div>
+  <div class="nav-item" data-page="kb"><span class="ic">🗂️</span>知识库</div>
+  <div class="nav-item" data-page="status"><span class="ic">🖥️</span>系统状态</div>
+  <div class="foot">
+    <div id="footInfo">加载中…</div>
+  </div>
+</aside>
+
+<!-- ==================== MAIN ==================== -->
+<div class="main">
+
+  <!-- ---------- 工作台 ---------- -->
+  <section class="page active" id="page-solve">
+    <h1 class="title">⚔️ 解题工作台</h1>
+    <p class="subtitle">填一个目标（目录 / URL / 远程），一键启动 L0→L1→L2→L3 秒题流水线。</p>
+
+    <div class="card">
+      <h3>目标设置</h3>
+      <div class="row3">
+        <div>
+          <label>题目名称</label>
+          <input type="text" id="s-name" placeholder="如 web_calc">
+        </div>
+        <div>
+          <label>题型（自动也可）</label>
+          <select id="s-category">
+            <option value="">自动侦测</option>
+            <option value="web">web</option>
+            <option value="pwn">pwn</option>
+            <option value="crypto">crypto</option>
+            <option value="reverse">reverse</option>
+            <option value="forensics">forensics</option>
+            <option value="misc">misc</option>
+          </select>
+        </div>
+        <div>
+          <label>模式</label>
+          <select id="s-mode">
+            <option value="supervisor">supervisor（总控×专家）</option>
+            <option value="race">race（并行赛道）</option>
+            <option value="single">single（单智能体）</option>
+          </select>
+        </div>
+      </div>
+      <div class="row2">
+        <div>
+          <label>题目目录（本地附件路径）</label>
+          <input type="text" id="s-path" placeholder="C:\challenges\web1 或留空">
+        </div>
+        <div>
+          <label>Web 目标 URL</label>
+          <input type="text" id="s-url" placeholder="http://target:8080/">
+        </div>
+      </div>
+      <div class="row2">
+        <div>
+          <label>远程主机 host:port（pwn）</label>
+          <input type="text" id="s-remote" placeholder="如 1.2.3.4:1337">
+        </div>
+        <div>
+          <label>flag 格式（正则）</label>
+          <input type="text" id="s-flagfmt" value="(?i)\b(?:flag|ctf|key|secret)\{[^}\s]{1,128}\}">
+        </div>
+      </div>
+      <div class="row2">
+        <div>
+          <label>题目描述 / 线索（可选）</label>
+          <textarea id="s-desc" placeholder="粘贴题目描述，帮助策略与知识库检索…"></textarea>
+        </div>
+        <div>
+          <label>评分器 URL（可选，POST {"flag": ...}）</label>
+          <input type="text" id="s-scorer" placeholder="留空则仅按 flag 格式校验">
+        </div>
+      </div>
+      <div class="row3" style="margin-top:12px">
+        <div>
+          <label>时间预算（秒）</label>
+          <input type="number" id="s-budget" value="600" min="10">
+        </div>
+        <div>
+          <label>并行赛道数</label>
+          <input type="number" id="s-lanes" value="2" min="1" max="8">
+        </div>
+        <div>
+          <label>选项</label>
+          <div style="padding-top:9px">
+            <label style="display:inline-flex;gap:6px;margin:0;align-items:center">
+              <input type="checkbox" id="s-no-llm"> 仅 L0/L1（零 token）
+            </label>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
+        <button class="btn primary" id="btn-solve">🚀 开始解题</button>
+        <button class="btn danger" id="btn-stop" disabled>⏹ 停止</button>
+        <span class="tag" id="s-hint"></span>
+      </div>
+    </div>
+
+    <div class="card" id="result-card" style="display:none">
+      <h3>结果</h3>
+      <div class="result-banner" id="result-banner">
+        <div>
+          <div class="flag" id="r-flag">—</div>
+          <div class="meta" id="r-meta"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn sm" id="btn-open-writeup">📄 查看 writeup</button>
+        <button class="btn sm" id="btn-open-session">📦 查看会话日志</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>实时流水线 <span class="badge" id="s-status-badge">idle</span>
+          <span class="tag" id="s-elapsed" style="float:right"></span></h3>
+      <div class="logbox" id="s-log"><span class="line">— 等待任务 —</span></div>
+    </div>
+  </section>
+
+  <!-- ---------- 任务历史 ---------- -->
+  <section class="page" id="page-tasks">
+    <h1 class="title">📜 任务历史</h1>
+    <p class="subtitle">最近的解题任务与结果。</p>
+    <div class="card" id="tasks-card">
+      <table>
+        <thead><tr><th>名称</th><th>状态</th><th>flag</th><th>耗时</th><th>创建时间</th><th></th></tr></thead>
+        <tbody id="tasks-body"><tr><td colspan="6" class="empty">加载中…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ---------- 模型 ---------- -->
+  <section class="page" id="page-models">
+    <h1 class="title">🧠 模型配置</h1>
+    <p class="subtitle">当前已配置的 LLM 提供方与角色映射。可在 ctfh.json 或环境变量中调整。</p>
+    <div class="grid2">
+      <div class="card">
+        <h3>角色 → 后端</h3>
+        <table><tbody id="models-roles"></tbody></table>
+      </div>
+      <div class="card">
+        <h3>提供方 <button class="btn sm" id="btn-ping" style="float:right">📡 ping 测延迟</button></h3>
+        <table><tbody id="models-providers"></tbody></table>
+        <div id="ping-out" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- 预案 ---------- -->
+  <section class="page" id="page-recipes">
+    <h1 class="title">📚 预案库</h1>
+    <p class="subtitle">L1 阶段脚本化攻击预案（零 token）。数量：<span id="rec-count">-</span></p>
+    <div class="card" id="recipes-card">
+      <table>
+        <thead><tr><th>ID</th><th>标题</th><th>适用题型</th><th>说明</th></tr></thead>
+        <tbody id="recipes-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ---------- 知识库 ---------- -->
+  <section class="page" id="page-kb">
+    <h1 class="title">🗂️ 知识库</h1>
+    <p class="subtitle">放入 kb/ 的 writeup 与速查表，按相关性注入 L2 提示词。</p>
+    <div class="card">
+      <div style="display:flex;gap:10px;align-items:center">
+        <input type="text" id="kb-q" placeholder="搜索关键词，如 sqli / rsa / heap…" style="max-width:420px">
+        <button class="btn sm" id="btn-kb">搜索</button>
+      </div>
+      <div id="kb-stats" style="margin-top:10px;color:var(--muted);font-size:12px"></div>
+      <div id="kb-hits" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <!-- ---------- 状态 ---------- -->
+  <section class="page" id="page-status">
+    <h1 class="title">🖥️ 系统状态</h1>
+    <p class="subtitle">环境体检：工具、插件、知识库、提供方。</p>
+    <div class="grid2">
+      <div class="card">
+        <h3>运行时</h3>
+        <table id="status-runtime"></table>
+      </div>
+      <div class="card">
+        <h3>已检测工具（<span id="tool-count">-</span>）</h3>
+        <div id="status-tools"></div>
+      </div>
+      <div class="card">
+        <h3>插件</h3>
+        <div id="status-plugins"></div>
+      </div>
+      <div class="card">
+        <h3>知识库</h3>
+        <div id="status-kb"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+/* ================= helpers ================= */
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const fmtTime = (ts) => ts ? new Date(ts * 1000).toLocaleTimeString("zh-CN") : "-";
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+async function api(path, opts) {
+  const r = await fetch(path, opts);
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+  return data;
+}
+
+function lineClass(line) {
+  const l = line.toLowerCase();
+  if (l.includes("flag=") && (l.includes("solved") || l.includes("✓"))) return "flagline";
+  if (l.startsWith("[") && (l.includes("error") || l.includes("fail") || l.includes("timeout"))) return "err";
+  if (l.startsWith("[") && (l.includes("warn") || l.includes("skip") || l.includes("no "))) return "warn";
+  if (l.startsWith("[") || l.startsWith("    ")) return "ok";
+  return "";
+}
+
+/* ================= nav ================= */
+const pages = ["solve", "tasks", "models", "recipes", "kb", "status"];
+document.querySelectorAll(".nav-item").forEach(item => {
+  item.addEventListener("click", () => {
+    document.querySelectorAll(".nav-item").forEach(i => i.classList.remove("active"));
+    item.classList.add("active");
+    pages.forEach(p => document.getElementById("page-" + p).classList.toggle("active", p === item.dataset.page));
+    if (item.dataset.page === "tasks") refreshTasks();
+    if (item.dataset.page === "recipes") refreshRecipes();
+    if (item.dataset.page === "kb") refreshKb();
+    if (item.dataset.page === "status") refreshStatus();
+  });
+});
+
+/* ================= status / foot ================= */
+let currentTaskId = null;
+let pollTimer = null;
+
+async function refreshStatus() {
+  try {
+    const s = await api("/api/status");
+    document.getElementById("verTag").textContent = "v" + s.version;
+    document.getElementById("footInfo").textContent =
+      `v${s.version} · python ${s.python} · 预案 ${s.recipes.total} · 工具 ${s.tools.count}`;
+    const rt = document.getElementById("status-runtime");
+    rt.innerHTML = [
+      ["ctf-harness", s.version],
+      ["Python", s.python],
+      ["工作目录", s.cwd],
+      ["提供方", s.providers.length ? s.providers.join(", ") : "（未配置，L0/L1 可用）"],
+      ["预案数", s.recipes.total],
+      ["已装工具", s.tools.count],
+    ].map(([k, v]) => `<tr><td class="tag">${esc(k)}</td><td class="mono">${esc(v)}</td></tr>`).join("");
+    const tools = document.getElementById("status-tools");
+    tools.innerHTML = s.tools.installed.map(t => `<span class="chip good">${esc(t)}</span>`).join("") || '<div class="empty">无</div>';
+    document.getElementById("tool-count").textContent = s.tools.count;
+    const pl = document.getElementById("status-plugins");
+    pl.innerHTML = (s.plugins.loaded.length ? s.plugins.loaded.map(p => `<span class="chip good">${esc(p)}</span>`).join("") : '<div class="empty">无插件</div>')
+      + (s.plugins.errors.length ? `<div class="tag" style="color:var(--red);margin-top:8px">${esc(s.plugins.errors.join("; "))}</div>` : "");
+    const kb = document.getElementById("status-kb");
+    kb.innerHTML = s.kb ? `<span class="chip">${esc(s.kb)}</span>` : '<div class="empty">未加载 kb/</div>';
+  } catch (e) {
+    document.getElementById("footInfo").textContent = "连接失败：" + e.message;
+  }
+}
+
+/* ================= solve ================= */
+function currentPayload() {
+  return {
+    challenge: {
+      name: $("s-name").value.trim(),
+      category: $("s-category").value,
+      mode: $("s-mode").value,
+      path: $("s-path").value.trim(),
+      url: $("s-url").value.trim(),
+      remote: $("s-remote").value.trim(),
+      flag_format: $("s-flagfmt").value.trim(),
+      scorer: $("s-scorer").value.trim(),
+      description: $("s-desc").value.trim(),
+      time_budget: $("s-budget").value || 600,
+      no_llm: $("s-no-llm").checked,
+    }
+  };
+}
+
+$("btn-solve").addEventListener("click", async () => {
+  const payload = currentPayload();
+  const c = payload.challenge;
+  if (!c.path && !c.url && !c.remote) {
+    $("s-hint").textContent = "请至少填写 目录 / URL / 远程 之一";
+    return;
+  }
+  $("s-hint").textContent = "";
+
+  $("result-card").style.display = "none";
+  $("s-log").innerHTML = '<span class="line">启动求解子进程…</span>';
+  try {
+    const res = await api("/api/solve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    currentTaskId = res.task.id;
+    startPolling(res.task.id);
+  } catch (e) {
+    $("s-log").innerHTML = `<span class="err">启动失败：${esc(e.message)}</span>`;
+    $("btn-solve").disabled = false;
+    $("btn-stop").disabled = true;
+  }
+});
+
+$("btn-stop").addEventListener("click", async () => {
+  if (!currentTaskId) return;
+  try {
+    await api(`/api/tasks/${currentTaskId}/stop`, { method: "POST" });
+    $("s-hint").textContent = "已发送停止请求…";
+  } catch (e) { $("s-hint").textContent = "停止失败：" + e.message; }
+});
+
+$("btn-open-writeup").addEventListener("click", () => {
+  if (currentTaskId) window.open(`/api/tasks/${currentTaskId}/writeup`, "_blank");
+});
+$("btn-open-session").addEventListener("click", () => {
+  if (currentTaskId) {
+    // 显示会话路径
+    navigator.clipboard?.writeText(lastSessionPath || "");
+    $("s-hint").textContent = "会话路径已复制：" + (lastSessionPath || "");
+  }
+});
+
+let lastSessionPath = "";
+function startPolling(taskId) {
+  if (pollTimer) clearInterval(pollTimer);
+  let after = 0;
+  let lastStatus = "";
+  const t0 = Date.now();
+  pollTimer = setInterval(async () => {
+    try {
+      const snap = await api(`/api/tasks/${taskId}/log?after=${after}`);
+      after = snap.line_count;
+      const box = $("s-log");
+      if (snap.lines.length) {
+        const first = box.querySelector("span.line") ? box.innerHTML.replace('<span class="line">启动求解子进程…</span>', "") : box.innerHTML;
+        const html = snap.lines.map(l => `<span class="${lineClass(l)}">${esc(l)}</span>\n`).join("");
+        if (snap.lines.length < 400) box.innerHTML = html; else box.innerHTML = html.slice(-40000);
+        box.scrollTop = box.scrollHeight;
+      }
+      $("s-elapsed").textContent = ((Date.now() - t0) / 1000).toFixed(1) + "s";
+      if (snap.status !== lastStatus) {
+        lastStatus = snap.status;
+        const cls = ["solved","unsolved","timeout","error","stopped"].includes(snap.status) ? snap.status : "running";
+        $("s-status-badge").textContent = snap.status;
+        $("s-status-badge").className = "badge " + cls;
+      }
+      if (["solved","unsolved","timeout","error","stopped"].includes(snap.status)) {
+        clearInterval(pollTimer); pollTimer = null;
+        $("btn-solve").disabled = false;
+        $("btn-stop").disabled = true;
+        if (snap.status === "solved") {
+          $("result-card").style.display = "block";
+          $("result-banner").classList.add("show");
+          $("r-flag").textContent = snap.flag || "?";
+          $("r-meta").textContent = `via ${snap.via || "-"}${snap.lane ? " / lane " + snap.lane : ""} · ${snap.duration_s}s`;
+        } else if (snap.status === "error") {
+          $("s-hint").textContent = "任务出错：" + snap.error;
+        }
+        lastSessionPath = snap.session_path || "";
+      }
+    } catch (e) {
+      clearInterval(pollTimer); pollTimer = null;
+      $("btn-solve").disabled = false;
+      $("btn-stop").disabled = true;
+      $("s-hint").textContent = "轮询失败：" + e.message;
+    }
+  }, 600);
+}
+
+/* ================= tasks ================= */
+async function refreshTasks() {
+  const tb = $("tasks-body");
+  try {
+    const data = await api("/api/tasks");
+    if (!data.tasks.length) { tb.innerHTML = '<tr><td colspan="6" class="empty">暂无任务</td></tr>'; return; }
+    tb.innerHTML = data.tasks.map(t => `
+      <tr>
+        <td class="mono">${esc(t.name)}</td>
+        <td><span class="badge ${esc(t.status)}">${esc(t.status)}</span></td>
+        <td class="mono" style="color:var(--green)">${esc(t.flag || "—")}</td>
+        <td>${t.duration_s ? t.duration_s + "s" : "…"}</td>
+        <td class="tag">${fmtTime(t.created_at)}</td>
+        <td>${t.status === "running" ? '<span class="spin"></span>' : ""}</td>
+      </tr>`).join("");
+  } catch (e) {
+    tb.innerHTML = `<tr><td colspan="6" class="empty">加载失败：${esc(e.message)}</td></tr>`;
+  }
+}
+
+/* ================= models ================= */
+async function refreshModels() {
+  try {
+    const m = await api("/api/models");
+    const roles = $("models-roles");
+    const roleRows = Object.entries(m.roles).map(([role, desc]) =>
+      `<tr><td class="tag">${esc(role)}</td><td class="mono">${esc(desc)}</td></tr>`).join("");
+    roles.innerHTML = roleRows || '<tr><td colspan="2" class="empty">未配置</td></tr>';
+    const prov = $("models-providers");
+    prov.innerHTML = (m.providers || []).map(p =>
+      `<tr><td class="mono">${esc(p.id)}</td><td class="mono">${esc(p.describe)}</td></tr>`).join("")
+      || '<tr><td colspan="2" class="empty">未配置提供方 — L0/L1 仍可用</td></tr>';
+  } catch (e) {
+    $("models-roles").innerHTML = `<tr><td colspan="2" class="empty">${esc(e.message)}</td></tr>`;
+  }
+}
+
+$("btn-ping").addEventListener("click", async () => {
+  const out = $("ping-out");
+  out.innerHTML = '<span class="spin"></span> 测速中…';
+  try {
+    const data = await api("/api/models/ping");
+    out.innerHTML = data.rows.map(r =>
+      `<div class="tag" style="margin:3px 0">${esc(r.provider)} → ${r.ok ? "✅ " + r.ms.toFixed(1) + " ms" : "❌ " + esc(r.error)}</div>`).join("") || '<div class="empty">无提供方</div>';
+  } catch (e) { out.innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+});
+
+/* ================= recipes ================= */
+async function refreshRecipes() {
+  const tb = $("recipes-body");
+  try {
+    const data = await api("/api/recipes");
+    document.getElementById("rec-count").textContent = data.recipes.length;
+    if (!data.recipes.length) { tb.innerHTML = '<tr><td colspan="4" class="empty">无预案</td></tr>'; return; }
+    tb.innerHTML = data.recipes.map(r => `
+      <tr>
+        <td class="mono">${esc(r.id)}</td>
+        <td>${esc(r.title)}</td>
+        <td>${(r.categories || []).map(c => `<span class="chip">${esc(c)}</span>`).join("") || '<span class="tag">-</span>'}</td>
+        <td class="tag">${esc(r.description || "")}</td>
+      </tr>`).join("");
+  } catch (e) {
+    tb.innerHTML = `<tr><td colspan="4" class="empty">${esc(e.message)}</td></tr>`;
+  }
+}
+
+/* ================= kb ================= */
+$("btn-kb").addEventListener("click", refreshKb);
+$("kb-q").addEventListener("keydown", (e) => { if (e.key === "Enter") refreshKb(); });
+
+async function refreshKb() {
+  const q = $("kb-q").value.trim();
+  try {
+    const data = await api("/api/kb?q=" + encodeURIComponent(q));
+    $("kb-stats").textContent = data.stats ? "索引：" + data.stats : "知识库未加载";
+    const hits = $("kb-hits");
+    if (!data.hits.length) {
+      hits.innerHTML = '<div class="empty">' + (q ? "无匹配" : "输入关键词搜索") + '</div>';
+      return;
+    }
+    hits.innerHTML = data.hits.map(h =>
+      `<div class="kb-hit"><div class="src">${esc(h.source || h)}</div><div>${esc(h.text || h)}</div></div>`).join("");
+  } catch (e) {
+    $("kb-hits").innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+  }
+}
+
+/* ================= boot ================= */
+(async function boot() {
+  await refreshStatus();
+  refreshModels();
+  // 若任务列表非空，切到任务页也无需手动刷新
+  document.querySelector(".nav-item[data-page=solve]").classList.add("active");
+})();
+</script>
+</body>
+</html>
