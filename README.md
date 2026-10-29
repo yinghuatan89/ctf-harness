@@ -103,10 +103,33 @@ ctfh solve ./chall --no-llm
 # pre-race warmup: which provider is fastest right now?
 ctfh models --ping
 ctfh doctor
+
+# local web dashboard (GUI) - no build step, cross-platform, Docker-ready
+ctfh web --open
 ```
 
 Every solve produces `writeup.md` + a full `.ctfh/session.jsonl` replay
 (regenerate with `ctfh report session.jsonl`).
+
+## Web dashboard (GUI)
+
+`ctfh web` opens a local single-page cockpit: create a challenge, watch the
+L0→L1→L2→L3 pipeline live, grab the flag banner, inspect providers/recipes/
+knowledge base, and cancel tasks — all with **zero required dependencies**
+(pure stdlib HTTP server + vanilla HTML/JS, no CDN).
+
+```bash
+ctfh web --port 8787 --open     # then open http://127.0.0.1:8787/
+```
+
+Runs on Windows / Linux / macOS, and ships with a ready-to-use
+[Dockerfile](Dockerfile) + [docker-compose.yml](docker-compose.yml):
+
+```bash
+docker compose up -d            # open http://localhost:8787
+```
+
+Details & API reference: [docs/WEBUI.md](docs/WEBUI.md).
 
 ## Model support (local + vendor)
 

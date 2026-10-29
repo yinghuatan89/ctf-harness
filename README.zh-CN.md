@@ -93,10 +93,32 @@ ctfh solve ./chall --no-llm
 # 赛前热身：看哪家模型现在最快
 ctfh models --ping
 ctfh doctor
+
+# 本地 Web 图形界面（GUI）——零构建、跨平台、可 Docker 部署
+ctfh web --port 8787 --open
 ```
 
 每次解题都会产出 `writeup.md` 和完整的 `.ctfh/session.jsonl` 回放
 （可用 `ctfh report session.jsonl` 重新生成复盘文档）。
+
+## Web 图形界面（GUI）
+
+`ctfh web` 启动一个本地单页作战台：新建题目、实时观看 L0→L1→L2→L3 流水线、
+取 flag 横幅、浏览模型/预案/知识库/延迟表、一键停止任务——**零第三方依赖**
+（纯标准库 HTTP 服务 + 原生 HTML/JS，无 CDN）。
+
+```bash
+ctfh web --port 8787 --open     # 然后打开 http://127.0.0.1:8787/
+```
+
+Windows / Linux / macOS 均可运行，并内置可直接使用的
+[Dockerfile](Dockerfile) 与 [docker-compose.yml](docker-compose.yml)：
+
+```bash
+docker compose up -d            # 打开 http://localhost:8787
+```
+
+接口与面板说明见 [docs/WEBUI.md](docs/WEBUI.md)。
 
 ## 模型接入（本地 + 厂商）
 

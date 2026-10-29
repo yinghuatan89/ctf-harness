@@ -1,0 +1,18 @@
+# keep the image small and reproducible
+.git
+.github
+.temp
+docs
+examples
+tests
+kb
+plugins
+recipes.d
+ctfh-runs
+ctfh-web-runs
+*.pyc
+__pycache__
+*.egg-info
+build
+dist
+.DS_Store

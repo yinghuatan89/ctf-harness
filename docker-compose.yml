@@ -1,0 +1,30 @@
+# ctf-harness web dashboard - local compose deployment
+#
+#   docker compose up -d
+#   open http://localhost:8787
+#
+# Mount points (all optional):
+#   ./kb        -> knowledge base corpus (writeups / cheatsheets)
+#   ./ctfh.json -> harness configuration (providers / roles / ctfd)
+#   ./plugins   -> drop-in python plugins
+#   ./recipes.d -> declarative JSON recipe packs
+#   ./runs      -> per-task workspaces + reports (ctfh-web-runs)
+
+services:
+  ctf-harness:
+    build: .
+    image: ctf-harness:latest
+    container_name: ctf-harness
+    ports:
+      - "8787:8787"
+    volumes:
+      - ./kb:/app/kb
+      - ./ctfh.json:/app/ctfh.json:ro
+      - ./plugins:/app/plugins
+      - ./recipes.d:/app/recipes.d
+      - ./runs:/app/ctfh-web-runs
+    environment:
+      # optional overrides; api keys can also live in ctfh.json as "env:VAR"
+      - CTFH_SUPERVISOR_PROVIDER
+      - CTFH_SUPERVISOR_MODEL
+    restart: unless-stopped
