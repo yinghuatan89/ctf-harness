@@ -18,6 +18,8 @@ ctfh.json
 *.session/
 solved/
 workspaces/
+ctfh-runs/
+ctfh-web-runs/
 
 # Editors / OS
 .idea/
